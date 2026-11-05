@@ -1,0 +1,41 @@
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+
+metadata:
+  name: jenkins
+  namespace: argocd
+
+spec:
+  project: default
+
+  sources:
+
+    # Official Jenkins Helm Chart
+    - repoURL: https://charts.jenkins.io
+      chart: jenkins
+      targetRevision: "CHART_VERSION"
+
+      helm:
+        releaseName: jenkins
+
+        valueFiles:
+          - $values/values/jenkins/values.yaml
+
+    # Gitea repository for Helm values
+    - repoURL: https://gitea.example.com/devops/jenkins-gitops.git
+      targetRevision: main
+      ref: values
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: jenkins
+
+  syncPolicy:
+
+    automated:
+      prune: true
+      selfHeal: true
+
+    syncOptions:
+      - CreateNamespace=true

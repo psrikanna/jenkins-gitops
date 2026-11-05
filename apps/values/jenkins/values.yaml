@@ -1,0 +1,112 @@
+
+# ==========================================
+# Jenkins Controller Configuration
+# ==========================================
+
+controller:
+
+  image:
+    registry: docker.io
+    repository: jenkins/jenkins
+    tag: "2.580.2-jdk21"
+    pullPolicy: IfNotPresent
+
+  # No builds on Jenkins controller
+  numExecutors: 0
+  executorMode: NORMAL
+
+  # Controller resources
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "2"
+      memory: "4Gi"
+
+  # Java memory settings
+  javaOpts: "-Xms1g -Xmx3g"
+
+  # Internal service
+  serviceType: ClusterIP
+  servicePort: 8080
+
+  # Admin credentials Secret
+  admin:
+    username: admin
+    createSecret: true
+
+  # Plugins
+  installPlugins:
+    - kubernetes
+    - workflow-aggregator
+    - git
+    - configuration-as-code
+
+  installLatestPlugins: true
+  installLatestSpecifiedPlugins: false
+  initializeOnce: true
+
+  # Jenkins URL
+  ingress:
+    enabled: false
+
+# ==========================================
+# Kubernetes Agent Configuration
+# ==========================================
+
+agent:
+  enabled: true
+
+  image:
+    registry: docker.io
+    repository: jenkins/inbound-agent
+    tag: "latest-jdk21"
+
+  workingDir: /home/jenkins/agent
+
+  containerCap: 10
+  instanceCap: 10
+  idleMinutes: 0
+
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "512Mi"
+    limits:
+      cpu: "1"
+      memory: "1Gi"
+
+# ==========================================
+# Persistent Storage
+# ==========================================
+
+persistence:
+  enabled: true
+  size: 20Gi
+  accessMode: ReadWriteOnce
+
+  # Leave empty to use the cluster default StorageClass.
+  # Set explicitly if your cluster requires a particular class.
+  # storageClass: "your-storage-class"
+
+# ==========================================
+# Kubernetes RBAC
+# ==========================================
+
+rbac:
+  create: true
+  readSecrets: false
+
+serviceAccount:
+  create: true
+
+serviceAccountAgent:
+  create: false
+
+# ==========================================
+# Network Policy
+# ==========================================
+
+networkPolicy:
+  enabled: false
